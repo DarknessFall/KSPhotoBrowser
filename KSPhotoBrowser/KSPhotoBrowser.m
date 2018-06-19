@@ -494,16 +494,26 @@ static Class imageManagerClass = nil;
         return;
     }
     KSPhotoView *photoView = [self photoViewForPage:_currentPage];
-    UIImage *image = photoView.imageView.image;
+    YYImage *image = (YYImage *)photoView.imageView.image;
     if (!image) {
         return;
     }
-    UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:@[image] applicationActivities:nil];
+    
+    [self setStatusBarHidden:NO];
+    id imageData = [image yy_imageDataRepresentation];
+    UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:@[imageData] applicationActivities:nil];
     if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
         activityViewController.popoverPresentationController.sourceView = longPress.view;
         CGPoint point = [longPress locationInView:longPress.view];
         activityViewController.popoverPresentationController.sourceRect = CGRectMake(point.x, point.y, 1, 1);
     }
+    
+    __weak KSPhotoBrowser *weakSelf = self;
+    activityViewController.completionWithItemsHandler =
+    ^(UIActivityType  _Nullable activityType, BOOL completed, NSArray * _Nullable returnedItems, NSError * _Nullable activityError) {
+        [weakSelf setStatusBarHidden:YES];
+    };
+    
     [self presentViewController:activityViewController animated:YES completion:nil];
 }
 
